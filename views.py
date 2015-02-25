@@ -4,6 +4,7 @@ from flask.views import MethodView
 from delmart.models import Shipment, Comment
 from data_transfer.shipment_dto import ShipmentDto
 from mongoengine.fields import *
+from flask.ext.restful import reqparse
 
 from flask import make_response
 
@@ -16,47 +17,49 @@ from datetime import datetime
 
 shipments = Blueprint('shipments', __name__)
 
-# class CustomJSONEncoder(JSONEncoder):
-#
-#     def default(self, obj):
-#         try:
-#             if isinstance(obj, datetime):
-#                 if obj.utcoffset() is not None:
-#                     obj = obj - obj.utcoffset()
-#                 millis = int(
-#                     calendar.timegm(obj.timetuple()) * 1000 +
-#                     obj.microsecond / 1000
-#                 )
-#                 return millis
-#             iterable = iter(obj)
-#         except TypeError:
-#             pass
-#         else:
-#             return list(iterable)
-#         return JSONEncoder.default(self, obj)
-
-
 class ListView(MethodView):
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('shipment_id', type = str, required=True,
+                                   help = 'No shipment_id provided', location = 'json')
+        self.reqparse.add_argument('creator_organisation', type = str, required=True,
+                                   help = 'No creator_organisation provided', location = 'json')
+        self.reqparse.add_argument('body', type = str, required=True,
+                                   help = 'No body provided', location = 'json')
+        super(ListView, self).__init__()
 
     def get(self):
         shipments = Shipment.objects.all()
-        format = ShipmentDto(shipments)
-        return json.dumps(format.format())
+        format1 = ShipmentDto(shipments)
+        return json.dumps(format1.format())
         # return shipments.to_json()
         # return dumps(list(shipments))
         # return jsonify({"shipments":shipments})
 
     def post(self):
-        a= {}
-        a['shipment_id'] = "1234"
-        a['body'] = '16254'
-        a['creator_organisation'] = request.json.get('creator_organisation')
-        shipment = update_document(Shipment(),a)
-        # shipment.creator_organisation = request.json.get('creator_organisation')
-        # shipment.body = request.json.get('body')
+        # shipment =Shipment()
+        # result = shipment.parse_input()
+        result = {}
+        args = self.reqparse.parse_args()
+        for k, v in args.iteritems():
+            if v != None:
+                result[k] = v
+
+        shipment = update_document(Shipment(),result)
         shipment.save()
-        return Response(shipment, status=200, mimetype='application/json')
-        # return json.dumps({"z":1})
+        format = ShipmentDto([shipment])
+        return Response(json.dumps(format.format()), status=200, mimetype='application/json')
+        # return jsonify( { 'task': shipment } )
+        # a= {}
+        # a['shipment_id'] = "1234"
+        # a['body'] = '16254'
+        # a['creator_organisation'] = request.json.get('creator_organisation')
+        # shipment = update_document(Shipment(),a)
+        # # shipment.creator_organisation = request.json.get('creator_organisation')
+        # # shipment.body = request.json.get('body')
+        # shipment.save()
+        # return Response(shipment, status=200, mimetype='application/json')
 
 class DetailView(MethodView):
 

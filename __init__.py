@@ -1,15 +1,13 @@
 __author__ = 'ashutosh.banerjee'
 from flask import Flask
 from mongoengine import connect
-#from delmart.views import CustomJSONEncoder
+from flask.ext.restful import Api, Resource
+
+
 db = connect('entities', host='localhost', port=27017)
-# def connect():
-#     connection = MongoClient("localhost",27017)
-#     handle = connection["entities"]
-#     #handle.authenticate("demo-user","12345678")
-#     return handle
 
 app = Flask(__name__)
+api = Api(app)
 
 def register_blueprints(app):
     # Prevents circular imports

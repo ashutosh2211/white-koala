@@ -1,4 +1,6 @@
 __author__ = 'ashutosh.banerjee'
+from IPython import embed
+
 class ShipmentDto:
     def __init__(self, shipments):
         self.shipments = shipments

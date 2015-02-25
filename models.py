@@ -16,6 +16,9 @@ class Shipment(Document):
     def __unicode__(self):
         return self.shipment_id
 
+    def __repr__(self):
+        return self.shipment_id
+
     meta = {
         'allow_inheritance': True,
         'indexes': ['-created_at'],
