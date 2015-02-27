@@ -12,7 +12,7 @@ from mongoengine.fields import *
 #import json
 
 
-class ListView(MethodView):
+class ShipmentListView(MethodView):
 
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -24,17 +24,17 @@ class ListView(MethodView):
                                    help = 'No body provided', location = 'json')
         self.reqparse.add_argument('metadata', type = dict, required=False,
                                    help = 'No metadata provided', location = 'json')
-        super(ListView, self).__init__()
+        super(ShipmentListView, self).__init__()
 
     @json
     def get(self):
         shipments = Shipment.objects.all()
         return shipments
 
+    @json
     def post(self):
-        # shipment =Shipment()
-        # result = shipment.parse_input()
         result = {}
+        Shipment().validate_fields(request.json)
         args = self.reqparse.parse_args()
         for k, v in args.iteritems():
             if v != None:
@@ -42,7 +42,8 @@ class ListView(MethodView):
         shipment = Shipment()
         shipment.import_data(result)
         shipment.save()
-        return jsonify(shipment.export_data())
+        return [shipment]
+        # return jsonify(shipment.export_data())
         # shipment = update_document(Shipment(),result)
         # shipment.save()
         # format = ShipmentDto([shipment])
@@ -86,8 +87,7 @@ def update_document(doc, data):
         pass
 
   return doc
-api.add_url_rule('/', view_func=ListView.as_view('list'))
-api.add_url_rule('/abc', view_func=ListView.as_view('list1'))
+api.add_url_rule('/', view_func=ShipmentListView.as_view('shipment_list'))
 # @api.route('/customers/', methods=['GET'])
 # @json
 # @paginate('customers')

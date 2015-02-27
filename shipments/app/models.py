@@ -1,18 +1,32 @@
 import datetime
 from flask import url_for
-from . import db
+from flask.ext.restful import reqparse
+import validictory
 
 from mongoengine import *
 
 
 class Shipment(Document):
-    created_at = DateTimeField(default=datetime.datetime.now, required=True)
+    created_at = DateTimeField(default=datetime.datetime.now)
     shipment_id = StringField(max_length=255, required=True, unique=True)
     creator_organisation = StringField(max_length=255, required=True)
     promised_delivery_date = DateTimeField(default=datetime.datetime.now, required=True)
     metadata = DictField(default={})
     body = StringField(required=True)
     comments = ListField(EmbeddedDocumentField('Comment'))
+
+# "promised_delivery_date" : {"type": "string", "format" : "date-time"},
+    def validate_fields(self, data):
+        schema = {  "type" : "object",
+                    "properties" : {
+                        "shipment_id": {"type":"string", "maxlength" : "16"},
+                        "creator_organisation" : {"type" : "string"},
+                        "metadata" : { "type" : "object",
+                                       "properties" : {"weight" : {"type" : "string"}}},
+                        "body" : {"type" : "string"}
+                    }
+        }
+        validictory.validate(data, schema)
 
     def get_absolute_url(self):
         return url_for('post', kwargs={"shipment_id": self.shipment_id})

@@ -1,6 +1,5 @@
 import functools
 from flask import jsonify
-from IPython import embed
 
 
 def json(f):
@@ -28,7 +27,7 @@ def json(f):
                 rv = obj.export_data()
                 result.append(rv)
         # generate the JSON response
-        rv = jsonify(result)
+        rv = jsonify(result = result)
         if status is not None:
             rv.status_code = status
         if headers is not None:
